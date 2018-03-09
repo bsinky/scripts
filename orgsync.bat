@@ -4,15 +4,13 @@ rem Script to sync org-mode files stored in the home directory to cloude storage
 rem 
 rem Windows version
 
-REM https://stackoverflow.com/a/1445724/4276832
-SET HOUR=%time:~0,2%
-SET dtStamp9=%date:~-4%%date:~4,2%%date:~7,2%_0%time:~1,1%%time:~3,2%%time:~6,2% 
-SET dtStamp24=%date:~-4%%date:~4,2%%date:~7,2%_%time:~0,2%%time:~3,2%%time:~6,2%
-
-if "%HOUR:~0,1%" == " " (SET dtStamp=%dtStamp9%) else (SET dtStamp=%dtStamp24%)
-
 SET logdir=%USERPROFILE%\orglogs\
-SET logfile=%logdir%%dtStamp%.log
+
+rem https://stackoverflow.com/a/19163883/4276832
+for /f %%a in ('powershell -Command "Get-Date -format yyyy_MM_dd__HH_mm_ss"') do set datetime=%%a
+SET logfile="%logdir%orglog-%datetime%.log"
+
+echo %logfile%
 
 IF NOT EXIST %logdir% mkdir %logdir%
 
