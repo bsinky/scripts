@@ -19,5 +19,5 @@ IF NOT EXIST %logdir% mkdir %logdir%
 REM Create logfile is it does not exist - https://stackoverflow.com/a/211045/4276832
 IF NOT EXIST %logfile% copy /y NUL %logfile% >NUL
 
-rclone copy google:org %USERPROFILE%\org -v -u --log-file %USERPROFILE%\orglogs\%dtStamp%.log
-rclone sync %USERPROFILE%\org google:org -v -u --log-file %USERPROFILE%\orglogs\%dtStamp%.log
+rclone copy google:org %USERPROFILE%\org -v -u --log-file %logfile%
+rclone sync %USERPROFILE%\org google:org -v -u --log-file %logfile%
