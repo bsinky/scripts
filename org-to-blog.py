@@ -1,5 +1,10 @@
 '''
 Org post to blog post conversationator
+
+TODO: don't hardcode paths, enforce config file or env variables, etc.
+TODO: figure out how to do feature image
+TODO: figure out how to do embedded images
+TODO: it would be nice to make everything more OOP - e.g. OrgFile, Entry, EntryGame classes...?
 '''
 
 import datetime
