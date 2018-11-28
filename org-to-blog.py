@@ -9,6 +9,7 @@ TODO: it would be nice to make everything more OOP - e.g. OrgFile, Entry, EntryG
 
 import datetime
 import os
+import re
 
 class Game:
     def __init__(self, text, images):
@@ -19,7 +20,7 @@ class Game:
         jekyll_string = self.text
         jekyll_string += '\n'
         if len(self.images) > 0:
-            for image in self.images:
+            for image in self.images[0:2]:
                 jekyll_string += '\n'
                 jekyll_string += '![image]({image})'.format(image=image)
                 jekyll_string += '\n'
@@ -36,7 +37,7 @@ def parse_entry(summary_text):
             break_word = True
         if ch == '\n':
             final_summary += ' '
-        elif ch in ['*', '\r', '[']:
+        elif ch in ['*', '\r', '[', ':']:
             pass
         elif ch == ']':
             potential_image_link = True
@@ -66,7 +67,6 @@ def parse_org_file(org_file_path):
         is_within_week = False
 
         for line in searchfile:
-            # print line
             if line.startswith("*** Week of"):
                 found_initial_week = True
                 is_within_week = True
@@ -83,44 +83,16 @@ def parse_org_file(org_file_path):
 
 def parse_games(entry_text):
     games = []
-    found_images = []
-    current_image = ''
-    potential_image_link = False
-    in_image_link = False
-    last_char_was_newline = False
-    final_summary = ''
-    for ch in entry_text:
-        if ch == '\n':
-            if last_char_was_newline:
-                last_char_was_newline = False
-                games.append(Game(final_summary, found_images))
-                final_summary = ''
-                found_images = []
-                current_image = ''
-            else:
-                last_char_was_newline = True
+    prog = re.compile('(\\[([^\\[\\]]+)\\])(\\(([^\\(\\)]+)\\))')
+    for line in entry_text.split('\n'):
+        images = []
+        if len(line) == 0:
             continue
-        elif ch == '[':
-            pass
-        elif ch == ']':
-            potential_image_link = True
-        elif ch == '(':
-            if potential_image_link:
-                in_image_link = True
-            else:
-                final_summary += ch
-            potential_image_link = False
-        elif in_image_link:
-            if ch == ')':
-                in_image_link = False
-                found_images.append(current_image)
-                current_image = ''
-            else:
-                current_image += ch
-        else:
-            final_summary += ch
-    if len(final_summary) > 0:
-        games.append(Game(final_summary, found_images))
+        for match in prog.findall(line):
+            line = line.replace(match[0], match[1])
+            line = line.replace(match[2], '')
+            images.append(match[3])
+        games.append(Game(line, images))
     return games
 
 orgfile = None
@@ -138,20 +110,17 @@ found_entry = parse_org_file(orgfile)
 found_summary = parse_entry(found_entry)
 found_games = parse_games(found_entry)
 
-image_frontmatter = ''
-
 frontmatter = '''---
 layout: post
 title: What I'm Playing - {date.month}/{date.day}/{date.year}
 date: {date.year}-{date.month}-{date.day}
 categories: ["What I'm Playing"]
-tags: ["video games"]{image}
+tags: ["video games"]
 summary: {summary}
 comments: true
 pinned: false
 ---
-'''.format(date=datetime.datetime.today(), summary=found_summary, image='')
-# print frontmatter + found_string
+'''.format(date=datetime.datetime.today(), summary=found_summary)
 
 post_file = "{0.year}-{0.month}-{0.day}-what-im-playing.md".format(datetime.datetime.today())
 
