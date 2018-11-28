@@ -119,6 +119,8 @@ def parse_games(entry_text):
                 current_image += ch
         else:
             final_summary += ch
+    if len(final_summary) > 0:
+        games.append(Game(final_summary, found_images))
     return games
 
 orgfile = None
