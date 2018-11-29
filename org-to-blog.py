@@ -11,6 +11,17 @@ import datetime
 import os
 import re
 
+class Image:
+    def __init__(self, text, link):
+        self.text = text
+        self.link = link
+
+    def to_jekyll(self):
+        link_to_use = self.link if 'imgur' not in self.link else self.link[:-4] + 'm' + self.link[-4:]
+        return '''
+![{caption}]({link})
+        '''.format(caption=self.text, link=link_to_use)
+
 class Game:
     def __init__(self, text, images):
         self.text = text
@@ -21,9 +32,7 @@ class Game:
         jekyll_string += '\n'
         if len(self.images) > 0:
             for image in self.images[0:2]:
-                jekyll_string += '\n'
-                jekyll_string += '![image]({image})'.format(image=image)
-                jekyll_string += '\n'
+                jekyll_string += image.to_jekyll()
         jekyll_string += '\n'
         return jekyll_string
 
@@ -91,7 +100,7 @@ def parse_games(entry_text):
         for match in prog.findall(line):
             line = line.replace(match[0], match[1])
             line = line.replace(match[2], '')
-            images.append(match[3])
+            images.append(Image(match[1], match[3]))
         games.append(Game(line, images))
     return games
 
