@@ -20,7 +20,6 @@ class Image:
     def to_jekyll(self):
         return '''
 [![{caption}]({thumbnail})]({link})
-*{caption}*
         '''.format(caption=self.text, link=self.link, thumbnail=self.thumbnail_image)
 
 class EntryPart:
