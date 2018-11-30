@@ -23,22 +23,32 @@ class Image:
 *{caption}*
         '''.format(caption=self.text, link=self.link, thumbnail=self.thumbnail_image)
 
-class Game:
-    def __init__(self, title, platform, text, images):
-        self.title = title
-        self.platform = platform
+class EntryPart:
+    def __init__(self, text, images):
         self.text = text
         self.images = images
 
     def to_jekyll(self):
-        jekyll_string = '### ' + self.title + ' ' + '*(' + self.platform + ')*'
-        jekyll_string += '\n\n'
-        jekyll_string += self.text
-        jekyll_string += '\n'
+        jekyll_string = self.text + '\n'
+
         if len(self.images) > 0:
             for image in self.images[0:2]:
                 jekyll_string += image.to_jekyll()
-        jekyll_string += '\n'
+
+        return jekyll_string
+
+class Game:
+    def __init__(self, title, platform, parts):
+        self.title = title
+        self.platform = platform
+        self.parts = parts
+
+    def to_jekyll(self):
+        jekyll_string = '### ' + self.title + ' ' + '*(' + self.platform + ')*'
+        jekyll_string += '\n\n'
+        for part in self.parts:
+            jekyll_string += part.to_jekyll()
+            jekyll_string += '\n'
         return jekyll_string
 
 def parse_entry(summary_text):
@@ -100,19 +110,33 @@ def parse_games(entry_text):
     title_prog = re.compile('\*\*(.+)\*\* \*\((.+)\)\* - ')
     prog = re.compile('(\\[([^\\[\\]]+)\\])(\\(([^\\(\\)]+)\\))')
     for line in entry_text.split('\n'):
-        images = []
         if len(line) == 0:
             continue
-        for match in prog.findall(line):
-            line = line.replace(match[0], match[1])
-            line = line.replace(match[2], '')
-            images.append(Image(match[1], match[3]))
 
+        parts = []
         title_match = title_prog.match(line)
         title = title_match.group(1)
         platform = title_match.group(2)
-        line = line[line.find(platform) + len(platform) + 5:]
-        games.append(Game(title, platform, line, images))
+        line = line.replace(title_match.group(0), '')
+
+        part_text = ''
+        images = []
+
+        for part in line.split('. '):
+            for match in prog.findall(part):
+                part = part.replace(match[0], match[1])
+                part = part.replace(match[2], '')
+                images.append(Image(match[1], match[3]))
+            part_text += part + '. '
+            if len(images) > 0:
+                parts.append(EntryPart(part_text, images))
+                part_text = ''
+                images = []
+
+        if len(part_text) > 0:
+            parts.append(EntryPart(part_text, images))
+
+        games.append(Game(title, platform, parts))
     return games
 
 orgfile = None
