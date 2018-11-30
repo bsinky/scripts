@@ -23,12 +23,16 @@ class Image:
         '''.format(caption=self.text, link=link_to_use)
 
 class Game:
-    def __init__(self, text, images):
+    def __init__(self, title, platform, text, images):
+        self.title = title
+        self.platform = platform
         self.text = text
         self.images = images
 
     def to_jekyll(self):
-        jekyll_string = self.text
+        jekyll_string = '### ' + self.title + ' ' + '*(' + self.platform + ')*'
+        jekyll_string += '\n\n'
+        jekyll_string += self.text
         jekyll_string += '\n'
         if len(self.images) > 0:
             for image in self.images[0:2]:
@@ -92,6 +96,7 @@ def parse_org_file(org_file_path):
 
 def parse_games(entry_text):
     games = []
+    title_prog = re.compile('\*\*(.+)\*\* \*\((.+)\)\* - ')
     prog = re.compile('(\\[([^\\[\\]]+)\\])(\\(([^\\(\\)]+)\\))')
     for line in entry_text.split('\n'):
         images = []
@@ -101,7 +106,12 @@ def parse_games(entry_text):
             line = line.replace(match[0], match[1])
             line = line.replace(match[2], '')
             images.append(Image(match[1], match[3]))
-        games.append(Game(line, images))
+
+        title_match = title_prog.match(line)
+        title = title_match.group(1)
+        platform = title_match.group(2)
+        line = line[line.find(platform) + len(platform) + 5:]
+        games.append(Game(title, platform, line, images))
     return games
 
 orgfile = None
