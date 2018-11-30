@@ -15,12 +15,13 @@ class Image:
     def __init__(self, text, link):
         self.text = text
         self.link = link
+        self.thumbnail_image = self.link if 'imgur' not in self.link else self.link[:-4] + 'm' + self.link[-4:]
 
     def to_jekyll(self):
-        link_to_use = self.link if 'imgur' not in self.link else self.link[:-4] + 'm' + self.link[-4:]
         return '''
-![{caption}]({link})
-        '''.format(caption=self.text, link=link_to_use)
+![{caption}]({thumbnail})
+*{caption}*
+        '''.format(caption=self.text, link=self.link, thumbnail=self.thumbnail_image)
 
 class Game:
     def __init__(self, title, platform, text, images):
